@@ -1,5 +1,10 @@
 "use client";
-
+import { baseURL, capitalizeFirstLetter } from "@/lib/features/baseData";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import LoadingSkeleton from "../../(components)/LoadingScreen";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,10 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { baseURL, capitalizeFirstLetter } from "@/lib/features/baseData";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import LoadingSkeleton from "../(components)/LoadingScreen";
+
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -23,11 +25,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { userValidation } from "@/constants/validationData";
+import { taskValidation, userValidation } from "@/constants/validationData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/ui/card";
 import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -35,47 +36,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-export default function ListUser() {
+const ChallengeOne = () => {
+  const [challengeData, setChallengeData] = useState([]);
+  const [taskId, setTaskId] = useState(null);
+  const params = useParams();
   const [userData, setUserData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
   const [zero, setZero] = useState(0);
   const [next, setNext] = useState(25);
-  const [sortBy, setSortBy] = useState("id DESC");
+  const [sortBy, setSortBy] = useState("marks DESC");
   const [userName, setUserName] = useState("");
-  const [student, setStudent] = useState("");
 
   const form = useForm({
-    resolver: zodResolver(userValidation),
+    resolver: zodResolver(taskValidation),
     defaultValues: {
-      name: userName,
       back: zero,
       next: next,
       sort: sortBy,
-      student: "",
+      task_id: "",
     },
   });
 
   const fetchData = async (searchParams = {}) => {
-    setIsLoading(true);
-    const { name, zero, next, sort ,student} = searchParams;
+    if (taskId) {
+      setIsLoading(true);
+      const { zero, next, sort, task_id } = searchParams;
 
-    try {
-      const response = await axios.get(`${baseURL}/get-all-users.php`, {
-        params: { name, zero, next, sort,student },
-      });
-      setUserData(response.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+      try {
+        const response = await axios.get(`${baseURL}/get-task-list.php`, {
+          params: { zero, next, sort, task_id },
+        });
+        // console.log(response.data);
+        setUserData(response.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchData({ name: userName, zero, next, sort: sortBy,student: student });
-  }, [zero, next, sortBy,student]);
+    fetchData({ zero, next, sort: sortBy, task_id: taskId });
+  }, [zero, next, sortBy, taskId]);
 
   const handleNext = () => {
     setZero((prevZero) => +prevZero + +next);
@@ -86,12 +90,10 @@ export default function ListUser() {
   };
 
   const onSubmit = (values) => {
-    // console.log(values);
-    setUserName(values.name);
+    console.log(values);
     setZero(values.back);
     setNext(values.next);
     setSortBy(values.sort);
-    setStudent(values.student);
     fetchData(values);
   };
 
@@ -99,10 +101,59 @@ export default function ListUser() {
     form.reset();
     setShowSearch(false);
   };
+  const fetchChallenge = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/get-challenge-one.php?challenge_id=${params.challenge_id}`
+      );
+      //   console.log(response.data);
+      setChallengeData(response.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchChallenge();
+  }, []);
 
+  // console.log(params)
   return (
     <div className="w-full bg-white rounded-md border p-3">
-      <Card className="p-3">
+      {isLoading ? (
+        <LoadingSkeleton />
+      ) : (
+        <>
+          <Card className="w-full flex overflow-x-scroll items-center p-2 gap-2">
+            <div className="font-bold text-xl whitespace-nowrap">
+              {challengeData?.title}
+            </div>
+
+            {challengeData?.tasks_list?.length > 0 &&
+              challengeData?.tasks_list?.map((item, index) => {
+                return (
+                  <div
+                    className={cn(
+                      "rounded-3xl p-3 min-h-40 min-w-64 text-center space-y-3",
+                      taskId == item.task_id ? "bg-green-500" : "bg-gray-600"
+                    )}
+                    onClick={() => setTaskId(item.task_id)}
+                    key={item.task_id}
+                  >
+                    <p className="font-extrabold text-lg">Round {index + 1}</p>
+                    <p className="font-semibold text-sm">{item.task_name}</p>
+                    <p className="font-semibold text-sm">{item.total_user}</p>
+                  </div>
+                );
+              })}
+          </Card>
+        </>
+      )}
+      {
+        userData?.data?.length > 0 && (
+            <>
+            <Card className="p-3 mt-2">
         <div className="w-full flex justify-end items-end">
           <Button
             onClick={() => setShowSearch(true)}
@@ -120,19 +171,6 @@ export default function ListUser() {
               !showSearch && "hidden"
             )}
           >
-            <FormField
-              name="name"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem className="col-span-12 md:col-span-6 py-2">
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               name="back"
               control={form.control}
@@ -174,15 +212,11 @@ export default function ListUser() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="id DESC">ID Descending</SelectItem>
-                      <SelectItem value="id ASC">ID Ascending</SelectItem>
-                      <SelectItem value="name DESC">Name Descending</SelectItem>
-                      <SelectItem value="name ASC">Name Ascending</SelectItem>
-                      <SelectItem value="birth_date DESC">
-                        DOB Descending
+                      <SelectItem value="marks DESC">
+                        Percentage Descending
                       </SelectItem>
-                      <SelectItem value="birth_date ASC">
-                        DOB Ascending
+                      <SelectItem value="marks ASC">
+                        Percentage Ascending
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -190,29 +224,7 @@ export default function ListUser() {
                 </FormItem>
               )}
             />
-            <FormField
-              name="student"
-              render={({ field }) => (
-                <FormItem className="md:col-span-6 col-span-12 py-2">
-                  <FormLabel>Student</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Student" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <div className="col-span-12 grid-cols-12 grid gap-3">
               <Button
                 className="md:col-span-2 col-span-5 w-full"
@@ -244,10 +256,8 @@ export default function ListUser() {
                   <TableHead>Name</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Mobile</TableHead>
-                  <TableHead>DOB</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Education</TableHead>
-                  <TableHead>Student</TableHead>
+                  <TableHead>Marks</TableHead>
+                  <TableHead>Percentage</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -263,12 +273,10 @@ export default function ListUser() {
                         {item.mobile}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {item.dob}
+                        {item.marks}
                       </TableCell>
-                      <TableCell>{item.gender}</TableCell>
-                      <TableCell>{item.education}</TableCell>
                       <TableCell>
-                        {capitalizeFirstLetter(item.student)}
+                        {item.total_user_percent.toFixed(2)}%
                       </TableCell>
                     </TableRow>
                   ))}
@@ -297,6 +305,11 @@ export default function ListUser() {
           </div>
         </>
       )}
+            </>
+        )
+      }
     </div>
   );
-}
+};
+
+export default ChallengeOne;

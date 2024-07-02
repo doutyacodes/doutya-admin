@@ -1,6 +1,6 @@
 "use client"
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, Triangle, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,6 +21,12 @@ const LeftSidebar = () => {
       path: "/list-users",
       icon: <User />,
       name: "List Users",
+    },
+    {
+      id: 3,
+      path: "/list-quiz",
+      icon: <Triangle />,
+      name: "List Quiz",
     },
   ];
   return (

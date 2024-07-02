@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { baseURL, capitalizeFirstLetter } from "@/lib/features/baseData";
+import { baseImgURL, baseURL, capitalizeFirstLetter } from "@/lib/features/baseData";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import LoadingSkeleton from "../(components)/LoadingScreen";
@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { userValidation } from "@/constants/validationData";
+import { quizValidation } from "@/constants/validationData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/ui/card";
 import { Search } from "lucide-react";
@@ -35,37 +35,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-export default function ListUser() {
-  const [userData, setUserData] = useState([]);
+export default function ListQuiz() {
+  const [challengeData, setChallengeData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
   const [zero, setZero] = useState(0);
   const [next, setNext] = useState(25);
-  const [sortBy, setSortBy] = useState("id DESC");
-  const [userName, setUserName] = useState("");
-  const [student, setStudent] = useState("");
-
+  const [sortBy, setSortBy] = useState("challenge_id DESC");
+  const [title, setTitle] = useState("");
+const router = useRouter()
   const form = useForm({
-    resolver: zodResolver(userValidation),
+    resolver: zodResolver(quizValidation),
     defaultValues: {
-      name: userName,
+      title: title,
       back: zero,
       next: next,
       sort: sortBy,
-      student: "",
     },
   });
 
   const fetchData = async (searchParams = {}) => {
     setIsLoading(true);
-    const { name, zero, next, sort ,student} = searchParams;
+    const { title, zero, next, sort } = searchParams;
 
     try {
-      const response = await axios.get(`${baseURL}/get-all-users.php`, {
-        params: { name, zero, next, sort,student },
+      const response = await axios.get(`${baseURL}/get-all-challenges.php`, {
+        params: { title, zero, next, sort },
       });
-      setUserData(response.data);
+    //   console.log(response.data)
+      setChallengeData(response.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -74,8 +75,8 @@ export default function ListUser() {
   };
 
   useEffect(() => {
-    fetchData({ name: userName, zero, next, sort: sortBy,student: student });
-  }, [zero, next, sortBy,student]);
+    fetchData({ title: title, zero, next, sort: sortBy});
+  }, [zero, next, sortBy]);
 
   const handleNext = () => {
     setZero((prevZero) => +prevZero + +next);
@@ -86,12 +87,11 @@ export default function ListUser() {
   };
 
   const onSubmit = (values) => {
-    // console.log(values);
-    setUserName(values.name);
+    console.log(values);
+    setTitle(values.title);
     setZero(values.back);
     setNext(values.next);
     setSortBy(values.sort);
-    setStudent(values.student);
     fetchData(values);
   };
 
@@ -121,13 +121,13 @@ export default function ListUser() {
             )}
           >
             <FormField
-              name="name"
+              name="title"
               control={form.control}
               render={({ field }) => (
                 <FormItem className="col-span-12 md:col-span-6 py-2">
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="Name" {...field} />
+                    <Input type="text" placeholder="Title" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,45 +174,18 @@ export default function ListUser() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="id DESC">ID Descending</SelectItem>
-                      <SelectItem value="id ASC">ID Ascending</SelectItem>
-                      <SelectItem value="name DESC">Name Descending</SelectItem>
-                      <SelectItem value="name ASC">Name Ascending</SelectItem>
-                      <SelectItem value="birth_date DESC">
-                        DOB Descending
-                      </SelectItem>
-                      <SelectItem value="birth_date ASC">
-                        DOB Ascending
-                      </SelectItem>
+                      <SelectItem value="challenge_id DESC">ID Descending</SelectItem>
+                      <SelectItem value="challenge_id ASC">ID Ascending</SelectItem>
+                      <SelectItem value="title DESC">Title Descending</SelectItem>
+                      <SelectItem value="title ASC">Title Ascending</SelectItem>
+                      
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              name="student"
-              render={({ field }) => (
-                <FormItem className="md:col-span-6 col-span-12 py-2">
-                  <FormLabel>Student</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Student" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
             <div className="col-span-12 grid-cols-12 grid gap-3">
               <Button
                 className="md:col-span-2 col-span-5 w-full"
@@ -241,35 +214,29 @@ export default function ListUser() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>DOB</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Education</TableHead>
-                  <TableHead>Student</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Deadline</TableHead>
+                  <TableHead>Image</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userData?.data?.length > 0 &&
-                  userData?.data?.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.id}</TableCell>
+                {challengeData?.data?.length > 0 &&
+                  challengeData?.data?.map((item) => (
+                    <TableRow key={item.challenge_id} className="cursor-pointer" onClick={()=>router.push(`list-quiz/${item.challenge_id}`)}>
+                      <TableCell>{item.challenge_id}</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {item.name}
+                        {item.title}
                       </TableCell>
-                      <TableCell>{item.username}</TableCell>
+                      
                       <TableCell className="whitespace-nowrap">
-                        {item.mobile}
+                        {item.end_date} 
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {item.dob}
+                      <TableCell className="">
+                        <div>
+                            <Image src={baseImgURL+"a"+item.image} width={120} height={30} alt={item.title} />
+                        </div>
                       </TableCell>
-                      <TableCell>{item.gender}</TableCell>
-                      <TableCell>{item.education}</TableCell>
-                      <TableCell>
-                        {capitalizeFirstLetter(item.student)}
-                      </TableCell>
+                      
                     </TableRow>
                   ))}
               </TableBody>
@@ -278,8 +245,8 @@ export default function ListUser() {
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">{`${
               +zero + 1
-            } - ${+zero + (userData?.data?.length || 0)} of ${
-              userData?.count ? userData?.count : 0
+            } - ${+zero + (challengeData?.data?.length || 0)} of ${
+              challengeData?.count ? challengeData?.count : 0
             }`}</div>
             <div className="space-x-2">
               <Button
