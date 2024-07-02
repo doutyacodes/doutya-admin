@@ -6,6 +6,7 @@ export const userValidation = z.object({
     back:z.any(),
     next:z.any(),
     sort:z.string(),
+    student:z.string(),
   
 })
 
