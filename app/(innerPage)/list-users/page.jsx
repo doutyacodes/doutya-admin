@@ -65,6 +65,7 @@ export default function ListUser() {
       const response = await axios.get(`${baseURL}/get-all-users.php`, {
         params: { name, zero, next, sort,student },
       });
+      // console.log(response.data.data)
       setUserData(response.data);
     } catch (error) {
       console.error(error);
@@ -248,6 +249,7 @@ export default function ListUser() {
                   <TableHead>Gender</TableHead>
                   <TableHead>Education</TableHead>
                   <TableHead>Student</TableHead>
+                  <TableHead>Password</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -269,6 +271,9 @@ export default function ListUser() {
                       <TableCell>{item.education}</TableCell>
                       <TableCell>
                         {capitalizeFirstLetter(item.student)}
+                      </TableCell>
+                      <TableCell>
+                        {item.password}
                       </TableCell>
                     </TableRow>
                   ))}

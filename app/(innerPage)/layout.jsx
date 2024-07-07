@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./(components)/Navbar";
 import LeftSidebar from "./(components)/LeftSidebar";
+import  { Toaster } from 'react-hot-toast';
 
 const layout = ({ children }) => {
   return (
@@ -14,6 +15,8 @@ const layout = ({ children }) => {
           <div className="w-full h-full p-3">{children}</div>
         </div>
       </div>
+      <Toaster position="top-right"
+  reverseOrder={false} />
     </div>
   );
 };

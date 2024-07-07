@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { taskValidation, userValidation } from "@/constants/validationData";
+import { taskValidation } from "@/constants/validationData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/ui/card";
 import { Search } from "lucide-react";
@@ -67,7 +67,7 @@ const ChallengeOne = () => {
         const response = await axios.get(`${baseURL}/get-task-list.php`, {
           params: { zero, next, sort, task_id },
         });
-        // console.log(response.data);
+        console.log(response.data);
         setUserData(response.data);
       } catch (error) {
         console.error(error);
