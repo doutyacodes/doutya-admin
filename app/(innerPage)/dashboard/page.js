@@ -23,6 +23,15 @@ const Dashboard = () => {
           <BadgePlus size={80} color={"#d90000"} />
         </p>
       </Link>
+      <Link
+        href={"/challenges/add-quiz"}
+        className="flex justify-between items-center group lg:col-span-3 md:col-span-6 col-span-12 bg-[#ee7d4c] p-3 rounded-md min-h-40 shadow-custom"
+      >
+        <p className="text-white font-semibold text-lg">Add Quiz</p>
+        <p className="group-hover:scale-110 duration-700 transition-all ease-in-out ">
+          <BadgePlus size={80} color={"#d90000"} />
+        </p>
+      </Link>
     </div>
   );
 };

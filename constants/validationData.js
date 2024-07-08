@@ -42,11 +42,31 @@ export const roundValidation = z.object({
   challenge_id: z.any(),
   task_name: z.string().min(5),
   description: z.string(),
-  image1: z.any(),
+  image: z.any(),
   quiz_type: z.any(),
-  task_percent: z.number().min(35).max(99),
+  task_percent: z.any(),
   task_variety: z.any(),
   task_keywords: z.any(),
-  stars: z.number(),
+  stars: z.any(),
   textData: z.string(),
+});
+
+
+export const questionValidation = z.object({
+  task_id: z.string(),
+  questions: z.array(
+    z.object({
+      type: z.enum(["text", "audio", "video", "image"]),
+      question: z.string(),
+      timer: z.any(),
+      media: z.union([z.string().optional(), z.instanceof(File).optional()]), // to handle file uploads
+      answers: z.array(
+        z.object({
+          answer_text: z.string(),
+          is_correct: z.any(),
+          marks: z.any()
+        })
+      ).min(2, { message: "At least two answers are required" })
+    })
+  ).min(1, { message: "At least one question is required" })
 });

@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { challengeValidation } from "@/constants/validationData";
+import {  roundValidation } from "@/constants/validationData";
 import { baseImgURL, baseURL } from "@/lib/features/baseData";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +42,6 @@ import "react-quill/dist/quill.snow.css";
 const AddTask = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [challenges, setChallenges] = useState([]);
-  const [location, setLocation] = useState([]);
   const [date, setDate] = useState();
   const [selectedFile1, setSelectedFile1] = useState(null);
 
@@ -50,47 +49,47 @@ const AddTask = () => {
     setSelectedFile1(event.target.files[0]);
     // console.log(event.target.files[0]);
   };
-  
+
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(challengeValidation),
+    resolver: zodResolver(roundValidation),
     defaultValues: {
-      title: "",
-      page_id: "",
+      challenge_id: "",
+      task_name: "",
       description: "",
-      start_date: new Date(),
-      end_date: new Date(),
-      district_id: "",
-      page_type: "",
-      image1: "",
-      image2: "",
-      rules: "",
-      salary: "",
-      salary_description: "",
+      image: "",
+      quiz_type: "",
+      task_percent: 35,
+      task_variety: "",
+      task_keywords: "",
+      stars: "",
+      textData: "",
     },
   });
 
   const onSubmit = async (values) => {
+          console.log(values);
+
     try {
       setIsLoading(true);
       const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("page_id", values.page_id);
+      formData.append("task_name", values.task_name);
+      formData.append("challenge_id", values.challenge_id);
       formData.append("description", values.description);
-      formData.append("start_date", values.start_date);
-      formData.append("end_date", values.end_date);
       formData.append("district_id", values.district_id);
       formData.append("page_type", values.page_type);
-      formData.append("salary", values.salary);
-      formData.append("salary_description", values.salary_description);
-      formData.append("rules", values.rules);
-      formData.append("image1", selectedFile1);
-      // console.log(selectedFile1);
-      // console.log(selectedFile2);
-      // console.log(formData);
+      formData.append("quiz_type", values.quiz_type);
+      formData.append("task_percent", values.task_percent);
+      formData.append("task_variety", values.task_variety);
+      formData.append("image", selectedFile1);
+      formData.append("task_keywords", values.task_keywords);
+      formData.append("stars", values.stars);
+      formData.append("textData", values.textData);
+      console.log(selectedFile1);
+      console.log(formData);
       const response = await axios.post(
-        `${baseURL}/create-challenges.php`,
+        `${baseURL}/create-rounds.php`,
         formData,
         {
           headers: {
@@ -98,11 +97,12 @@ const AddTask = () => {
           },
         }
       );
-      if (response.data.success) {
-        toast.success("Challenge added successfully.");
-      }
+      console.log(response.data)
 
-      // console.log("Form Submitted", response.data);
+      if (response.data.success) {
+        toast.success("Round added successfully.");
+      }
+      console.log("Form Submitted", response.data);
     } catch (error) {
       console.error("Error submitting form", error);
       toast.error("Error submitting form. Please try again.");
@@ -122,6 +122,7 @@ const AddTask = () => {
       const response = await axios.get(
         `${baseURL}/get-all-inactive-challenges.php`
       );
+      // console.log(response.data);
       setChallenges(response.data.data);
     } catch (error) {
       console.error(error);
@@ -181,7 +182,7 @@ const AddTask = () => {
                             value={item.challenge_id}
                             key={item.challenge_id}
                           >
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-center">
                               <Image
                                 width={40}
                                 height={20}
@@ -200,38 +201,7 @@ const AddTask = () => {
               )}
             />
 
-            <FormField
-              name="district_id"
-              render={({ field }) => (
-                <FormItem className="md:col-span-6 col-span-12 py-2">
-                  <FormLabel>Location</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Location" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {location?.length > 0 &&
-                        location.map((item) => (
-                          <SelectItem
-                            value={item.district_id}
-                            key={item.district_id}
-                          >
-                            <div className="flex gap-2">
-                              <p> {item.title}</p>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
 
             <FormField
               name="quiz_type"
@@ -281,34 +251,44 @@ const AddTask = () => {
                 </FormItem>
               )}
             />
-<FormField
+            <FormField
               name="stars"
               control={form.control}
               render={({ field }) => (
                 <FormItem className="col-span-12 md:col-span-6 py-2">
                   <FormLabel>Stars</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} max={1} placeholder="Stars" {...field} />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={3}
+                      placeholder="Stars"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-<FormField
+            <FormField
               name="task_percent"
               control={form.control}
               render={({ field }) => (
                 <FormItem className="col-span-12 md:col-span-6 py-2">
                   <FormLabel>Winning Percent</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} max={1} placeholder="Winning Percent" {...field} />
+                    <Input
+                      type="number"
+                      min={35}
+                      max={98}
+                      placeholder="Winning Percent"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-        
 
             <FormField
               name="description"
@@ -317,6 +297,23 @@ const AddTask = () => {
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <ReactQuill
+                      className="rounded-md"
+                      onChange={(html) => field.onChange(html)}
+                      value={field.value}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="textData"
+              render={({ field }) => (
+                <FormItem className="col-span-12 py-2">
+                  <FormLabel>Stars Description</FormLabel>
+                  <FormControl>
+                    <ReactQuill
+                      className="rounded-md"
                       onChange={(html) => field.onChange(html)}
                       value={field.value}
                     />
@@ -326,10 +323,8 @@ const AddTask = () => {
               )}
             />
 
-    
-
             <FormField
-              name="image1"
+              name="image"
               control={form.control}
               render={({ field }) => (
                 <FormItem className="col-span-12 md:col-span-6 py-2">
@@ -347,7 +342,7 @@ const AddTask = () => {
                       <Image
                         src={URL.createObjectURL(selectedFile1)}
                         fill
-                        alt={"image1"}
+                        alt={"image"}
                         className="w-100 h-100 object-contain bg-no-repeat"
                       />
                     </div>
@@ -355,8 +350,6 @@ const AddTask = () => {
                 </FormItem>
               )}
             />
-
-            
 
             <div className="col-span-12 grid-cols-12 grid gap-3">
               <Button

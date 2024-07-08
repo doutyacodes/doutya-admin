@@ -85,7 +85,6 @@ const AddChallenge = () => {
   });
 
   const onSubmit = async (values) => {
-    console.log(values);
     
       try {
         setIsLoading(true);
@@ -196,7 +195,7 @@ const AddChallenge = () => {
                       {pages?.length > 0 &&
                         pages.map((item) => (
                           <SelectItem value={item.id} key={item.id}>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-center">
                               <Image
                                 width={20}
                                 height={20}
