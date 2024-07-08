@@ -39,12 +39,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import ReactQuill from "react-quill";
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
 import "react-quill/dist/quill.snow.css";
 
 const AddChallenge = () => {
