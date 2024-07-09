@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { questionValidation } from "@/constants/validationData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -58,14 +57,7 @@ const AddQuestions = () => {
     control: form.control,
     name: "questions",
   });
-  const {
-    fields: answerFields,
-    append: appendAnswer,
-    remove: removeAnswer,
-  } = useFieldArray({
-    control: form.control,
-    name: "answers", // Replace with your form field name
-  });
+
   const handleFileChange = (index, event) => {
     const file = event.target.files[0];
     setSelectedFiles((prev) => ({ ...prev, [index]: file }));
@@ -73,7 +65,7 @@ const AddQuestions = () => {
   };
 
   const onSubmit = async (values) => {
-    console.log(values)
+    console.log(values);
     try {
       const formData = new FormData();
       formData.append("task_id", values.task_id);
@@ -93,10 +85,7 @@ const AddQuestions = () => {
             `questions[${index}].answers[${i}].is_correct`,
             answer.is_correct
           );
-          formData.append(
-            `questions[${index}].answers[${i}].marks`,
-            answer.marks
-          );
+          formData.append(`questions[${index}].answers[${i}].marks`, answer.marks);
         });
       });
 
@@ -148,198 +137,190 @@ const AddQuestions = () => {
               )}
             />
 
-            {questionFields.map((question, questionIndex) => (
-              <div key={question.id} className="col-span-12 border p-3 mb-3">
-                <div className="grid grid-cols-12 gap-3">
-                  <FormField
-                    name={`questions.${questionIndex}.type`}
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem className="col-span-12 md:col-span-4 py-2">
-                        <FormLabel>Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="text">Text</SelectItem>
-                            <SelectItem value="audio">Audio</SelectItem>
-                            <SelectItem value="video">Video</SelectItem>
-                            <SelectItem value="image">Image</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            {questionFields.map((question, questionIndex) => {
+              const {
+                fields: answerFields,
+                append: appendAnswer,
+                remove: removeAnswer,
+              } = useFieldArray({
+                control: form.control,
+                name: `questions.${questionIndex}.answers`,
+              });
 
-                  <FormField
-                    name={`questions.${questionIndex}.question`}
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem className="col-span-12 md:col-span-4 py-2">
-                        <FormLabel>Question</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Question"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    name={`questions.${questionIndex}.timer`}
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem className="col-span-12 md:col-span-4 py-2">
-                        <FormLabel>Timer (in seconds)</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="Timer" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {(form.watch(`questions.${questionIndex}.type`) === "image" ||
-                    form.watch(`questions.${questionIndex}.type`) === "audio" ||
-                    form.watch(`questions.${questionIndex}.type`) ===
-                      "video") && (
+              return (
+                <div key={question.id} className="col-span-12 border p-3 mb-3">
+                  <div className="grid grid-cols-12 gap-3">
                     <FormField
-                      name={`questions.${questionIndex}.media`}
+                      name={`questions.${questionIndex}.type`}
                       control={form.control}
                       render={({ field }) => (
-                        <FormItem className="col-span-12 md:col-span-6 py-2">
-                          <FormLabel>
-                            Upload{" "}
-                            {form.watch(`questions.${questionIndex}.type`)}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="file"
-                              onChange={(e) =>
-                                handleFileChange(questionIndex, e)
-                              }
-                            />
-                          </FormControl>
+                        <FormItem className="col-span-12 md:col-span-4 py-2">
+                          <FormLabel>Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="text">Text</SelectItem>
+                              <SelectItem value="audio">Audio</SelectItem>
+                              <SelectItem value="video">Video</SelectItem>
+                              <SelectItem value="image">Image</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
-                          {selectedFiles[questionIndex] && (
-                            <div className="col-span-12 grid grid-cols-12 h-[100px] w-[100px] relative">
-                              <Image
-                                src={URL.createObjectURL(
-                                  selectedFiles[questionIndex]
-                                )}
-                                fill
-                                alt={"media"}
-                                className="w-100 h-100 object-contain bg-no-repeat"
-                              />
-                            </div>
-                          )}
                         </FormItem>
                       )}
                     />
-                  )}
 
-                  <Button
-                    type="button"
-                    onClick={() => removeQuestion(questionIndex)}
-                    className="col-span-12 md:col-span-2 w-full"
-                  >
-                    Remove Question
-                  </Button>
+                    <FormField
+                      name={`questions.${questionIndex}.question`}
+                      control={form.control}
+                      render={({ field }) => (
+                        <FormItem className="col-span-12 md:col-span-4 py-2">
+                          <FormLabel>Question</FormLabel>
+                          <FormControl>
+                            <Input type="text" placeholder="Question" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormLabel className="col-span-12 py-2">Answers</FormLabel>
-                  {answerFields.map((answer, answerIndex) => (
-                    <div
-                      key={answer.id}
-                      className="col-span-12 grid grid-cols-12 gap-3 mb-3"
+                    <FormField
+                      name={`questions.${questionIndex}.timer`}
+                      control={form.control}
+                      render={({ field }) => (
+                        <FormItem className="col-span-12 md:col-span-4 py-2">
+                          <FormLabel>Timer (in seconds)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="Timer" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {(form.watch(`questions.${questionIndex}.type`) === "image" ||
+                      form.watch(`questions.${questionIndex}.type`) === "audio" ||
+                      form.watch(`questions.${questionIndex}.type`) === "video") && (
+                      <FormField
+                        name={`questions.${questionIndex}.media`}
+                        control={form.control}
+                        render={({ field }) => (
+                          <FormItem className="col-span-12 md:col-span-6 py-2">
+                            <FormLabel>
+                              Upload {form.watch(`questions.${questionIndex}.type`)}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="file"
+                                onChange={(e) => handleFileChange(questionIndex, e)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                            {selectedFiles[questionIndex] && (
+                              <div className="col-span-12 grid grid-cols-12 h-[100px] w-[100px] relative">
+                                <Image
+                                  src={URL.createObjectURL(selectedFiles[questionIndex])}
+                                  fill
+                                  alt={"media"}
+                                  className="w-100 h-100 object-contain bg-no-repeat"
+                                />
+                              </div>
+                            )}
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    <Button
+                      type="button"
+                      onClick={() => removeQuestion(questionIndex)}
+                      className="col-span-12 md:col-span-2 w-full"
                     >
-                      <FormField
-                        name={`questions.${questionIndex}.answers.${answerIndex}.answer_text`}
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem className="col-span-12 md:col-span-4 py-2">
-                            <FormLabel>Answer Text</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="text"
-                                placeholder="Answer Text"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      Remove Question
+                    </Button>
 
-                      <FormField
-                        name={`questions.${questionIndex}.answers.${answerIndex}.is_correct`}
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem className="col-span-12 md:col-span-4 py-2">
-                            <FormLabel>Is Correct?</FormLabel>
-                            <FormControl>
-                              <Input type="checkbox" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        name={`questions.${questionIndex}.answers.${answerIndex}.marks`}
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem className="col-span-12 md:col-span-4 py-2">
-                            <FormLabel>Marks</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                placeholder="Marks"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button
-                        type="button"
-                        onClick={() => removeAnswer(answerIndex)}
-                        className="col-span-12 md:col-span-2 w-full"
+                    <FormLabel className="col-span-12 py-2">Answers</FormLabel>
+                    {answerFields.map((answer, answerIndex) => (
+                      <div
+                        key={answer.id}
+                        className="col-span-12 grid grid-cols-12 gap-3 mb-3"
                       >
-                        Remove Answer
-                      </Button>
-                    </div>
-                  ))}
+                        <FormField
+                          name={`questions.${questionIndex}.answers.${answerIndex}.answer_text`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 md:col-span-4 py-2">
+                              <FormLabel>Answer Text</FormLabel>
+                              <FormControl>
+                                <Input type="text" placeholder="Answer Text" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      appendAnswer({
-                        answer_text: "",
-                        is_correct: false,
-                        marks: 0,
-                      })
-                    }
-                    className="col-span-12 md:col-span-2 w-full"
-                  >
-                    Add Answer
-                  </Button>
+                        <FormField
+                          name={`questions.${questionIndex}.answers.${answerIndex}.is_correct`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 md:col-span-4 py-2">
+                              <FormLabel>Is Correct?</FormLabel>
+                              <FormControl>
+                                <Input type="checkbox" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          name={`questions.${questionIndex}.answers.${answerIndex}.marks`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <FormItem className="col-span-12 md:col-span-4 py-2">
+                              <FormLabel>Marks</FormLabel>
+                              <FormControl>
+                                <Input type="number" min={0} placeholder="Marks" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <Button
+                          type="button"
+                          onClick={() => removeAnswer(answerIndex)}
+                          className="col-span-12 md:col-span-2 w-full"
+                        >
+                          Remove Answer
+                        </Button>
+                      </div>
+                    ))}
+
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        appendAnswer({
+                          answer_text: "",
+                          is_correct: false,
+                          marks: 0,
+                        })
+                      }
+                      className="col-span-12 md:col-span-2 w-full"
+                    >
+                      Add Answer
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             <Button
               type="button"

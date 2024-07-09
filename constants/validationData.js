@@ -64,9 +64,9 @@ export const questionValidation = z.object({
         z.object({
           answer_text: z.string(),
           is_correct: z.any(),
-          marks: z.any()
+          marks: z.any(),
         })
-      ).min(2, { message: "At least two answers are required" })
+      ).min(2, { message: "At least two answers are required" }),
     })
-  ).min(1, { message: "At least one question is required" })
+  ).min(1, { message: "At least one question is required" }),
 });
