@@ -258,6 +258,7 @@ const ChallengeOne = () => {
                   <TableHead>Mobile</TableHead>
                   <TableHead>Marks</TableHead>
                   <TableHead>Percentage</TableHead>
+                  <TableHead>Rank</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -277,6 +278,9 @@ const ChallengeOne = () => {
                       </TableCell>
                       <TableCell>
                         {item.total_user_percent.toFixed(2)}%
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {item.rank}
                       </TableCell>
                     </TableRow>
                   ))}
