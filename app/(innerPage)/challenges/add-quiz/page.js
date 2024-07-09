@@ -18,16 +18,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { questionValidation } from "@/constants/validationData";
+import { baseImgURL, baseURL } from "@/lib/features/baseData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
 const AddQuestions = () => {
   const [selectedFiles, setSelectedFiles] = useState({});
+  const [tasks, setTasks] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const form = useForm({
@@ -67,6 +70,7 @@ const AddQuestions = () => {
   const onSubmit = async (values) => {
     console.log(values);
     try {
+        setIsLoading(true)
       const formData = new FormData();
       formData.append("task_id", values.task_id);
       values.questions.forEach((question, index) => {
@@ -109,8 +113,29 @@ const AddQuestions = () => {
       console.error("Error submitting form", error);
       toast.error("Error submitting form. Please try again.");
     }
+    finally{
+        setIsLoading(false)
+    }
   };
+  const fetchData = async () => {
+    setIsLoading(true);
 
+    try {
+      const response = await axios.get(
+        `${baseURL}/get-all-tasks.php`
+      );
+      console.log(response.data);
+      setTasks(response.data.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+
+    fetchData();
+  }, []);
   return (
     <div className="p-3">
       <Card className="p-3">
@@ -125,13 +150,39 @@ const AddQuestions = () => {
           >
             <FormField
               name="task_id"
-              control={form.control}
               render={({ field }) => (
-                <FormItem className="col-span-12 py-2">
-                  <FormLabel>Task ID</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Task ID" {...field} />
-                  </FormControl>
+                <FormItem className=" col-span-12 py-2">
+                  <FormLabel>Test</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Test" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {tasks?.length > 0 &&
+                        tasks.map((item) => (
+                          <SelectItem
+                            value={item.task_id}
+                            key={item.task_id}
+                          >
+                            <div className="flex gap-2 items-center">
+                              <Image
+                                width={40}
+                                height={20}
+                                alt={item.task_name}
+                                src={baseImgURL + item.image}
+                                className="object-contain"
+                              />{" "}
+                              <p> {item.task_name}</p>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -345,7 +396,7 @@ const AddQuestions = () => {
               <Button
                 type="submit"
                 className="md:col-span-2 col-span-5 w-full"
-                disabled={form.formState.isSubmitting}
+                disabled={form.formState.isSubmitting || isLoading}
               >
                 Submit
               </Button>
